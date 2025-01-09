@@ -1,7 +1,7 @@
+// Type definitions for Ethereum provider
 interface EthereumProvider {
-  // Request method used to interact with the provider
   request: (args: {
-    method: string;
+    method: "eth_requestAccounts";
     params?: unknown[] | object;
   }) => Promise<unknown>;
 
@@ -20,11 +20,12 @@ interface EthereumProvider {
   isMetaMask?: boolean;
 }
 
-// Extend the wwindow interface
+// Extend the window interface
 declare global {
   interface Window {
     ethereum?: EthereumProvider;
   }
 }
 
+// EXPORT TO MAKE IT ACCESSIBLE
 export {};

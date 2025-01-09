@@ -19,6 +19,7 @@ import { Input } from "#/components/ui/input";
 import { Button } from "#/components/ui/button";
 import { Label } from "#/components/ui/label";
 import abi from "../../abi.json";
+import { env } from "#/env";
 
 const contractABI = abi as AbiItem[];
 
@@ -36,7 +37,7 @@ export interface SimpleStorageContract
   };
 }
 
-const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS;
+const contractAddress = env.NEXT_PUBLIC_CONTRACT_ADDRESS;
 
 export default function SimpleStorageDApp() {
   const [account, setAccount] = useState<string | null>(null);
@@ -44,11 +45,13 @@ export default function SimpleStorageDApp() {
   const [contract, setContract] = useState<SimpleStorageContract | null>(null);
   const [storedValue, setStoredValue] = useState<string>("");
   const [inputValue, setInputValue] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isGetLoading, setIsGetLoading] = useState<boolean>(false);
+  const [isSetLoading, setIsSetLoading] = useState<boolean>(false);
   const { toast } = useToast();
 
   useEffect(() => {
     const initializeWeb3 = async () => {
+      // window.ethereum is noa set with typesafety in global.d.ts
       if (typeof window.ethereum !== "undefined") {
         try {
           const web3Instance = new Web3(window.ethereum);
@@ -62,6 +65,7 @@ export default function SimpleStorageDApp() {
             setAccount(accounts[0]);
           }
 
+          // Instantiate the contract
           const contractInstance = new web3Instance.eth.Contract(
             contractABI,
             contractAddress,
@@ -94,7 +98,8 @@ export default function SimpleStorageDApp() {
 
   const handleSet = async () => {
     if (contract && account && inputValue) {
-      setIsLoading(true);
+      setIsSetLoading(true);
+
       try {
         const numberValue = parseInt(inputValue, 10);
         await contract.methods.set(numberValue).send({ from: account });
@@ -110,14 +115,14 @@ export default function SimpleStorageDApp() {
           variant: "destructive",
         });
       } finally {
-        setIsLoading(false);
+        setIsSetLoading(false);
       }
     }
   };
 
   const handleGet = async () => {
     if (contract) {
-      setIsLoading(true);
+      setIsGetLoading(true);
       try {
         const result = await contract.methods.get().call();
         setStoredValue(result);
@@ -128,7 +133,7 @@ export default function SimpleStorageDApp() {
           variant: "destructive",
         });
       } finally {
-        setIsLoading(false);
+        setIsGetLoading(false);
       }
     }
   };
@@ -136,7 +141,7 @@ export default function SimpleStorageDApp() {
   return (
     <div className="container mx-auto flex min-h-screen items-center justify-center bg-gray-100 p-4">
       <Card className="mx-auto w-full max-w-md overflow-hidden rounded-lg bg-white shadow-sm">
-        <CardHeader className="bg-blue-600 p-6 text-white">
+        <CardHeader className="bg-blue-700 p-6 text-white">
           <CardTitle className="text-2xl font-bold">
             Simple Storage DApp
           </CardTitle>
@@ -164,14 +169,14 @@ export default function SimpleStorageDApp() {
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     placeholder="Enter a number"
-                    className="flex-1 border-gray-300 transition duration-200 focus:border-blue-500 focus:ring focus:ring-blue-200"
+                    className="flex-1 border-gray-300 transition duration-200 focus:border-blue-600 focus:ring focus:ring-blue-200"
                   />
                   <Button
                     onClick={handleSet}
-                    disabled={isLoading}
+                    disabled={isSetLoading}
                     className="rounded bg-green-500 px-4 py-2 font-bold text-white transition duration-200 hover:bg-green-600"
                   >
-                    {isLoading ? "Setting..." : "Set"}
+                    {isSetLoading ? "Setting..." : "Set"}
                   </Button>
                 </div>
               </div>
@@ -188,10 +193,10 @@ export default function SimpleStorageDApp() {
                   />
                   <Button
                     onClick={handleGet}
-                    disabled={isLoading}
-                    className="rounded bg-blue-500 px-4 py-2 font-bold text-white transition duration-200 hover:bg-blue-600"
+                    disabled={isGetLoading}
+                    className="rounded bg-blue-500 px-4 py-2 font-bold text-white transition duration-200 hover:bg-blue-700"
                   >
-                    {isLoading ? "Getting..." : "Get"}
+                    {isGetLoading ? "Getting..." : "Get"}
                   </Button>
                 </div>
               </div>
